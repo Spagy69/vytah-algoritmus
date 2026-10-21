@@ -34,3 +34,5 @@ zastávek. Po každém nástupu se plán znovu přepočítá.
 
 Při plné kabině výtah nezastavuje kvůli nástupu, ale pouze kvůli výstupu.
 Když nikdo nečeká, zůstane stát a čeká na nový požadavek.
+
+## Deploy - https://spagy69.github.io/vytah-algoritmus/
