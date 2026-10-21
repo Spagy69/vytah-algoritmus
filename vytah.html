@@ -302,35 +302,105 @@
 <!--  ALGORITMUS VÝTAHU  –  TADY UPRAVUJ                                   -->
 <!-- ===================================================================== -->
 <script id="algoritmus">
-/* ZÁKLADNÍ („PANELÁKOVÝ“) VÝTAH
+/* LOOK SE STÁRNUTÍM PRIORIT – návrh je popsaný v algoritmus.md.
  *
- * Člověk přijde, zavolá, výtah pro něj přijede, člověk nastoupí, zvolí patro a výtah ho doveze.
- *  - Je-li kabina prázdná, jede pro toho, kdo čeká nejdéle.
- *  - Nastoupí všichni, kdo čekají v tom patře, a vozí se v pořadí, v jakém nastoupili.
- *  - Cestou nikde nezastavuje a nikoho dalšího nebere.
+ * Výtah jede jedním směrem (proměnná `smer`) a po cestě nabírá i vykládá,
+ * dokud v tom směru má smysl pokračovat. Teprve když tam nic nezbývá, otočí
+ * se. Kdo čeká 60 s, má přednost při nejbližší změně směru. Kdo čeká 120 s,
+ * se stane okamžitou prioritou bez ohledu na směr.
  *
- * Je to nejhorší rozumný způsob. Vymysli lepší. Návod je na kartě „Manuál“.
+ * destVisible je u tohoto zadání false, takže u čekajících známe jen směr
+ * (osoba.smer) – jejich cílové patro se dozvíme až po nástupu (vKabine[i].cil).
  */
 
-// Volá se jednou před každou simulací. Sem patří vynulování vlastních proměnných.
+var smer = 1; // 1 = teď obsluhujeme nahoru, -1 = dolů
+
 function zacatek(stav) {
+  smer = 1;
 }
 
-// Volá se pořád dokola. Vrať číslo patra, kam jet, nebo null (stát / pokračovat).
+// Patro f je "ve směru dir" od aktuální pozice, pokud na něj výtah ještě
+// nenarazil v tomhle průjezdu (leží v daném směru před ním, nebo přesně na něm).
+function predNeboNa(stav, f, dir) {
+  return dir > 0 ? f >= stav.patro : f <= stav.patro;
+}
+
+function cileVKabine(stav, dir) {
+  var f = [];
+  stav.vKabine.forEach(function (o) {
+    if (predNeboNa(stav, o.cil, dir)) f.push(o.cil);
+  });
+  return f;
+}
+
+function cekajiciVeSmeru(stav, dir) {
+  if (stav.volno <= 0) return [];
+  var f = [];
+  stav.cekajici.forEach(function (o) {
+    if (o.smer === dir && predNeboNa(stav, o.patro, dir)) f.push(o.patro);
+  });
+  return f;
+}
+
+// Z nabídnutých (už filtrovaných) pater vybere nejbližší ve směru dir.
+function nejblizsiVeSmeru(stav, floors, dir) {
+  return dir > 0 ? Math.min.apply(null, floors) : Math.max.apply(null, floors);
+}
+
+// Nejdéle čekající, kdo už čeká aspoň `limit` s. Když je zadán `dir`, berou se
+// jen ti, co chtějí tenhle směr a zároveň leží před výtahem (ne za ním) – jinak
+// by stejně nemohli nastoupit, nebo by to kabinu s cestujícími táhlo zpátky
+// místo dokončení rozjeté jízdy, a to se jen nabalovalo do nekonečné smyčky.
+function najdiKritickeho(stav, limit, dir) {
+  if (stav.volno <= 0) return null; // plná kabina – není koho zachraňovat, nikdo nenastoupí
+  var nejhorsi = null;
+  stav.cekajici.forEach(function (o) {
+    if (stav.cas - o.od < limit) return;
+    if (dir !== undefined && (o.smer !== dir || !predNeboNa(stav, o.patro, dir))) return;
+    if (nejhorsi === null || o.od < nejhorsi.od) nejhorsi = o;
+  });
+  return nejhorsi;
+}
+
+// Prostorově nejbližší čekající – pro prázdnou kabinu, která ještě nemá směr.
+function nejblizsiCekajici(stav) {
+  return stav.cekajici.reduce(function (a, b) {
+    return Math.abs(b.patro - stav.patro) < Math.abs(a.patro - stav.patro) ? b : a;
+  });
+}
+
 function rozhodni(stav) {
   if (stav.vKabine.length > 0) {
-    return stav.vKabine[0].cil;            // vezmi toho, kdo nastoupil první
+    // okamžitá priorita, ale jen ve směru smer – jinak by nastoupit nemohl
+    var kritickySmer = najdiKritickeho(stav, 120, smer);
+    if (kritickySmer) return kritickySmer.patro;
+
+    // kabina jede – pokračuje ve směru smer a po cestě nabírá i vykládá
+    var zastavky = cileVKabine(stav, smer).concat(cekajiciVeSmeru(stav, smer));
+    if (zastavky.length) return nejblizsiVeSmeru(stav, zastavky, smer);
+    // nouzová pojistka (nemělo by nastat): doveze aspoň ty, co má v kabině
+    var cile = stav.vKabine.map(function (o) { return o.cil; });
+    return cile.reduce(function (a, b) { return Math.abs(b - stav.patro) < Math.abs(a - stav.patro) ? b : a; });
   }
-  if (stav.cekajici.length > 0) {
-    return stav.cekajici[0].patro;         // jeď pro nejdéle čekajícího
-  }
-  return null;                              // nikdo nic nechce
+
+  // kabina je prázdná – žádný závazek ke směru, jede k někomu, kdo čeká
+  var kriticky = najdiKritickeho(stav, 120);
+  if (kriticky) return kriticky.patro;
+
+  if (stav.cekajici.length === 0) return null;
+
+  var stary = najdiKritickeho(stav, 60);
+  if (stary) return stary.patro;
+
+  return nejblizsiCekajici(stav).patro;
 }
 
-// Smí tahle osoba nastoupit? Nastupuje se jen do prázdné kabiny
-// (nebo když všichni uvnitř nastoupili v tomto patře).
+// Nastoupí, pokud je v kabině místo a směr osoby sedí s tím, co výtah právě
+// obsluhuje. Prázdná kabina nechá první nastupující určit nový směr.
 function nastup(stav, osoba) {
-  return stav.vKabine.every(function (o) { return o.odkud === stav.patro; });
+  if (stav.volno <= 0) return false;
+  if (stav.vKabine.length === 0) { smer = osoba.smer; return true; }
+  return osoba.smer === smer;
 }
 </script>
 
