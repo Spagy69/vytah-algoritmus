@@ -14,13 +14,32 @@ Zadání: navrhnout algoritmus výtahu, který lidi rozveze s kratším čekán�
 3. Algoritmus se upravuje v `vytah.html`, v bloku `<script id="algoritmus">` (funkce `zacatek`, `rozhodni`, `nastup`). Zbytek souboru se nemá měnit.
 4. Po úpravě uložit a obnovit stránku – zadání se pamatuje a načte se samo.
 
+Aktuální algoritmus je LOOK se stárnutím priorit, návrh je popsaný v [algoritmus.md](algoritmus.md).
+
+## Výsledky na našem zadání
+
+Na `zadani/zadani-bezny-den-ve-skole.json` (otisk `B746-8C6D`):
+
+| | výchozí (panelákový) | LOOK se stárnutím priorit |
+|---|---|---|
+| Rozvezeno | 400 / 400 | 400 / 400 |
+| Průměrně celkem | 336,1 s | 206,1 s |
+| Ujetá dráha | 2922 m | 2211 m |
+| Zastavení | 309 | 342 |
+| Nejdelší čekání | 1438,7 s | 807,4 s |
+
+Hlavní metrika (průměrně celkem) klesla o cca třetinu a ujetá dráha o čtvrtinu. Nejdelší čekání je pořád vysoké (přes 13 minut) – při kapacitě 6 a frontě desítek lidí u přízemí stačí plná kabina a i "kritický" čekající musí počkat, až se uvolní místo. Zastavení naopak vzrostlo, protože výtah nabírá/vykládá po cestě víckrát, než jen při prázdné kabině jako dřív.
+
 ## Matice odpovědnosti
 
 | Co | Kdo |
 |---|---|
-| Algoritmus výtahu | Matěj Adamec |
-| Programování | Matěj Adamec, Vít Machač |
+| Algoritmus výtahu (návrh) | Matěj Adamec |
+| Algoritmus výtahu (kód) | AI (Claude) |
+| Založení repa, struktura projektu | AI (Claude) |
+| Testování a ladění na zadání | Vít Machač, AI (Claude) |
 | README / dokumentace | Vít Machač |
 
-## AI 
-- AI pomáhala při programování. Logika vymyšlená vlastnohlavě :DD
+## AI
+
+AI (Claude) podle návrhu v [algoritmus.md](algoritmus.md) (napsal Matěj) naprogramovala funkce `rozhodni`/`nastup`/`zacatek` ve `vytah.html` a odladila je na našem zadání – hlavní chyba byla, že výtah s plnou kabinou nebo s cestujícím na palubě zbytečně jezdil zpátky za "kritickým" čekajícím, i když k němu stejně nemohl nebo nemuselo mít smysl. Samotná myšlenka algoritmu (LOOK + stárnutí priorit) je Matějova, ne vygenerovaná AI.
