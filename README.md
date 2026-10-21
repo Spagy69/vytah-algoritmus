@@ -35,11 +35,10 @@ Hlavní metrika (průměrně celkem) klesla o cca třetinu a ujetá dráha o čt
 | Co | Kdo |
 |---|---|
 | Algoritmus výtahu (návrh) | Matěj Adamec |
-| Algoritmus výtahu (kód) | AI (Claude) |
-| Založení repa, struktura projektu | AI (Claude) |
-| Testování a ladění na zadání | Vít Machač, AI (Claude) |
+| Kód | Všichni |
+| Testování a ladění na zadání | Vít Machač, Claude |
 | README / dokumentace | Vít Machač |
 
 ## AI
 
-AI (Claude) podle návrhu v [algoritmus.md](algoritmus.md) (napsal Matěj) naprogramovala funkce `rozhodni`/`nastup`/`zacatek` ve `vytah.html` a odladila je na našem zadání – hlavní chyba byla, že výtah s plnou kabinou nebo s cestujícím na palubě zbytečně jezdil zpátky za "kritickým" čekajícím, i když k němu stejně nemohl nebo nemuselo mít smysl. Samotná myšlenka algoritmu (LOOK + stárnutí priorit) je Matějova, ne vygenerovaná AI.
+AI (Claude) podle návrhu v [algoritmus.md](algoritmus.md) (napsal Matěj) naprogramovala funkce `rozhodni`/`nastup`/`zacatek` ve `vytah.html` a odladila je na našem zadání. Samotná myšlenka algoritmu (LOOK + stárnutí priorit) je Matějova, ne vygenerovaná AI.
