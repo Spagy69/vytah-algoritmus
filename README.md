@@ -42,3 +42,8 @@ Hlavní metrika (průměrně celkem) klesla o cca třetinu a ujetá dráha o čt
 ## AI
 
 AI (Claude) podle návrhu v [algoritmus.md](algoritmus.md) (napsal Matěj) naprogramovala funkce `rozhodni`/`nastup`/`zacatek` ve `vytah.html` a odladila je na našem zadání. Samotná myšlenka algoritmu (LOOK + stárnutí priorit) je Matějova, ne vygenerovaná AI.
+
+
+## Deploy 
+
+- https://spagy69.github.io/vytah-algoritmus/
